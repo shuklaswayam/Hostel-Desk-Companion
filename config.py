@@ -1,15 +1,35 @@
 import os
 from pathlib import Path
+import urllib.parse
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
+def _sanitize_db_url(url: str) -> str:
+    """
+    Sanitizes PostgreSQL database URL to ensure special characters in passwords (like @)
+    are properly URL-encoded to prevent host translation errors in psycopg2.
+    """
+    if not url:
+        return ""
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+
+    # Handle multiple '@' characters in connection string (e.g., pass contains '@')
+    if "://" in url and url.count("@") > 1:
+        prefix, rest = url.split("://", 1)
+        auth_part, host_part = rest.rsplit("@", 1)
+        if ":" in auth_part:
+            user, password = auth_part.split(":", 1)
+            safe_password = urllib.parse.quote_plus(urllib.parse.unquote_plus(password))
+            return f"{prefix}://{user}:{safe_password}@{host_part}"
+    return url
+
 class Config:
     # Supabase / PostgreSQL Configuration
-    DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("SUPABASE_DB_URL", "")
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    raw_db_url = os.getenv("DATABASE_URL") or os.getenv("SUPABASE_DB_URL", "")
+    DATABASE_URL = _sanitize_db_url(raw_db_url)
 
     # Database mode: 'postgres' (Supabase), 'sqlite' (local default), or 'oracle'
     raw_mode = os.getenv("DB_MODE", "").lower()
