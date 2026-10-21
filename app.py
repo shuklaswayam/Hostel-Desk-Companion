@@ -1,6 +1,6 @@
 import os
 import sys
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from config import Config
 from database import db
 
@@ -17,6 +17,11 @@ try:
     db.init_database()
 except Exception as e:
     print(f"[WARN] Initial database startup connection failed: {e}")
+
+@app.route("/static/<path:filename>")
+def serve_static(filename):
+    """Fallback static asset delivery for serverless environments."""
+    return send_from_directory(os.path.join(BASE_DIR, "static"), filename)
 
 @app.route("/")
 def index():
