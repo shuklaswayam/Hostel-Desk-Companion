@@ -1,0 +1,9 @@
+{
+  "appId": "com.hostelparceldesk.app",
+  "appName": "Hostel Parcel Desk",
+  "webDir": "www",
+  "server": {
+    "url": "http://172.16.146.181:5001",
+    "cleartext": true
+  }
+}

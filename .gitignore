@@ -1,0 +1,32 @@
+# Environment & Secrets
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Database
+*.db
+*.sqlite3
+
+# Mobile build artifacts & dependencies
+mobile/node_modules/
+mobile/android/
+*.apk
+
+# Tooling
+.hallmark/
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db

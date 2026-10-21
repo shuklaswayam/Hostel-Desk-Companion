@@ -1,0 +1,13 @@
+import os
+import sys
+
+# Ensure project root is available on sys.path in Vercel Serverless environment
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from app import app
+
+# Vercel WSGI entry point
+# Exports the Flask WSGI callable
+application = app

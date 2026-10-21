@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hostel Parcel Desk — Campus Logistics & Intake Console</title>
+    <meta name="description" content="Centralized campus delivery reception, locker shelf storage tracking, pickup PIN verification, and automated SMS & Email student notifications.">
+    <meta name="theme-color" content="#0b0f19">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Parcel Desk">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon-192.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- Google Fonts: Space Grotesk (Display), Plus Jakarta Sans (Body), JetBrains Mono (Codes) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Design System Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- App Container Shell -->
+    <div class="app-shell">
+        
+        <!-- Header - Hallmark N9 Edge-Aligned Workbench Header -->
+        <header class="app-header" role="banner">
+            <div class="header-brand">
+                <div class="brand-icon-wrapper" aria-hidden="true">
+                    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">Hostel Parcel Desk</h1>
+                    <span class="brand-subtitle">Campus Delivery Reception & Locker Storage Console</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="system-badge" id="systemStatusBadge" title="Automated Email Services Active">
+                    <span class="status-indicator-dot" aria-hidden="true"></span>
+                    <span id="systemStatusText">DESK ONLINE • AUTO-EMAIL ACTIVE</span>
+                </div>
+
+                <button class="btn btn-secondary btn-icon" id="themeToggleBtn" aria-label="Toggle dark and light color theme" title="Toggle Theme">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+
+                <a href="{{ url_for('static', filename='hostel-parcel-desk.apk') }}" class="btn btn-secondary" title="Download Android App (APK)" download>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-svg" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Get APK</span>
+                </a>
+
+                <button class="btn btn-primary" id="openRegisterModalBtn" aria-haspopup="dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon-svg" aria-hidden="true">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    <span>Register Parcel</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Metric Command Strip (Asymmetric data-first overview) -->
+        <section class="stats-grid" aria-label="Reception Desk KPI Overview">
+            <div class="stat-card" id="cardTotal">
+                <div class="stat-header">
+                    <span class="stat-label">Total Received</span>
+                    <span class="stat-meta">Lifetime</span>
+                </div>
+                <div class="stat-value-row">
+                    <h2 class="stat-value" id="statTotalVal">--</h2>
+                </div>
+                <div class="stat-footer">
+                    <span class="stat-caption">Registered campus intake</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-interactive" id="cardPending" role="button" tabindex="0" title="Filter pending parcels">
+                <div class="stat-header">
+                    <span class="stat-label">Awaiting Pickup</span>
+                    <span class="stat-indicator-tag stat-tag-warning">In Locker</span>
+                </div>
+                <div class="stat-value-row">
+                    <h2 class="stat-value" id="statPendingVal">--</h2>
+                </div>
+                <div class="stat-footer">
+                    <span class="stat-caption">Holding in shelf locker racks</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-interactive" id="cardCollected" role="button" tabindex="0" title="Filter collected parcels">
+                <div class="stat-header">
+                    <span class="stat-label">Collected & Verified</span>
+                    <span class="stat-indicator-tag stat-tag-success">Verified</span>
+                </div>
+                <div class="stat-value-row">
+                    <h2 class="stat-value" id="statCollectedVal">--</h2>
+                </div>
+                <div class="stat-footer">
+                    <span class="stat-caption">Handed over via 6-digit PIN</span>
+                </div>
+            </div>
+
+            <div class="stat-card stat-interactive stat-alert-card" id="cardOverdue" role="button" tabindex="0" title="View overdue alerts">
+                <div class="stat-header">
+                    <span class="stat-label">Overdue Packages</span>
+                    <span class="stat-indicator-tag stat-tag-danger">Action Required</span>
+                </div>
+                <div class="stat-value-row">
+                    <h2 class="stat-value" id="statOverdueVal">--</h2>
+                </div>
+                <div class="stat-footer">
+                    <span class="stat-caption">> 48 hours waiting retention</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workbench Application Area -->
+        <main class="main-content" role="main">
+            <!-- Workbench Tab Navigation Bar -->
+            <nav class="tab-nav" role="tablist" aria-label="Console Workstations">
+                <button class="tab-btn active" role="tab" id="tabInventoryBtn" data-target="tabInventory" aria-selected="true" aria-controls="tabInventory">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-svg" aria-hidden="true">
+                        <path d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    <span>Package Directory</span>
+                </button>
+                <button class="tab-btn" role="tab" id="tabVerifyBtn" data-target="tabVerify" aria-selected="false" aria-controls="tabVerify">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-svg" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <span>Verification Terminal</span>
+                </button>
+                <button class="tab-btn" role="tab" id="tabOverdueBtn" data-target="tabOverdue" aria-selected="false" aria-controls="tabOverdue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-svg" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span>Overdue Watchdog</span>
+                </button>
+                <button class="tab-btn" role="tab" id="tabAuditBtn" data-target="tabAudit" aria-selected="false" aria-controls="tabAudit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tab-svg" aria-hidden="true">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    <span>Activity & Dispatch Logs</span>
+                </button>
+            </nav>
+
+            <!-- TAB 1: ACTIVE PACKAGES INVENTORY -->
+            <section class="tab-panel active" id="tabInventory" role="tabpanel" aria-labelledby="tabInventoryBtn">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <h2>Reception Parcel Directory</h2>
+                        <p>Search, filter, and track incoming carrier deliveries and shelf storage allocations</p>
+                    </div>
+                    <div class="panel-controls">
+                        <div class="search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon" aria-hidden="true">
+                                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            <input type="text" id="searchInput" placeholder="Search tracking #, reg no, student, shelf..." aria-label="Search parcels">
+                        </div>
+                        <div class="select-wrapper">
+                            <select id="statusFilter" class="select-control" aria-label="Filter by parcel status">
+                                <option value="ALL">All Statuses</option>
+                                <option value="PENDING">Pending Pickup</option>
+                                <option value="COLLECTED">Collected</option>
+                                <option value="OVERDUE">Overdue</option>
+                            </select>
+                        </div>
+                        <div class="select-wrapper">
+                            <select id="blockFilter" class="select-control" aria-label="Filter by hostel residential block">
+                                <option value="ALL">All Blocks</option>
+                                <option value="Block A">Block A</option>
+                                <option value="Block B">Block B</option>
+                                <option value="Block C">Block C</option>
+                                <option value="Block D">Block D</option>
+                                <option value="Block E">Block E</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-secondary" id="refreshParcelsBtn" title="Refresh Inventory List">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-svg" aria-hidden="true">
+                                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            </svg>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="parcelsTable">
+                        <thead>
+                            <tr>
+                                <th scope="col" style="width: 70px;">ID</th>
+                                <th scope="col">Carrier Tracking</th>
+                                <th scope="col">Recipient Student</th>
+                                <th scope="col">Hostel Block & Room</th>
+                                <th scope="col">Courier</th>
+                                <th scope="col">Storage Shelf</th>
+                                <th scope="col">Duration</th>
+                                <th scope="col">Status</th>
+                                <th scope="col" style="text-align: right; width: 100px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="parcelsTableBody">
+                            <tr>
+                                <td colspan="9" class="table-empty">
+                                    <div class="table-loading-spinner" aria-hidden="true"></div>
+                                    <span>Querying parcels from campus database...</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 2: PICKUP VERIFICATION STATION -->
+            <section class="tab-panel" id="tabVerify" role="tabpanel" aria-labelledby="tabVerifyBtn">
+                <div class="verification-layout">
+                    <!-- Left: Handover Form Card -->
+                    <div class="verification-card">
+                        <div class="card-header">
+                            <div>
+                                <h3>Handover Authentication Terminal</h3>
+                                <p>Authenticate student 6-digit PIN code to authorize handover and auto-issue digital receipts.</p>
+                            </div>
+                        </div>
+
+                        <form id="verifyForm" class="verification-form">
+                            <div class="form-group">
+                                <label for="verifyParcelSelect">Select Pending Delivery <span class="required">*</span></label>
+                                <select id="verifyParcelSelect" class="form-control" required>
+                                    <option value="">-- Choose Pending Package --</option>
+                                </select>
+                            </div>
+
+                            <!-- Live Selected Package Preview -->
+                            <div class="parcel-preview-card" id="verifyParcelPreview" style="display: none;">
+                                <div class="preview-header">
+                                    <span class="preview-title">Package Manifest Snapshot</span>
+                                    <span class="badge badge-pending">Ready for Handover</span>
+                                </div>
+                                <div class="preview-grid">
+                                    <div class="preview-item">
+                                        <span class="preview-label">Student Recipient</span>
+                                        <span class="preview-val" id="prevStudentName">--</span>
+                                    </div>
+                                    <div class="preview-item">
+                                        <span class="preview-label">Registration No</span>
+                                        <span class="preview-val code-val" id="prevRegNo">--</span>
+                                    </div>
+                                    <div class="preview-item">
+                                        <span class="preview-label">Storage Shelf</span>
+                                        <span class="preview-val badge badge-shelf" id="prevShelf">--</span>
+                                    </div>
+                                    <div class="preview-item">
+                                        <span class="preview-label">Intake Arrival</span>
+                                        <span class="preview-val" id="prevArrival">--</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="pin-input-header">
+                                    <label for="enteredPinCode">Enter 6-Digit Pickup Code <span class="required">*</span></label>
+                                    <span class="pin-security-tag">Confidential PIN</span>
+                                </div>
+                                <div class="pin-field-wrapper">
+                                    <input type="password" id="enteredPinCode" class="form-control pin-input" maxlength="10" placeholder="••••••" required autocomplete="off">
+                                    <button type="button" class="pin-reveal-toggle" id="pinRevealToggleBtn" aria-label="Toggle PIN visibility" title="Show/Hide PIN">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="eye-icon">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <small class="form-help">Provided to recipient student via automated SMS & Email upon package arrival.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="collectorRegInput">Authorized Collector Reg No <span class="optional-tag">(Optional if recipient in person)</span></label>
+                                <input type="text" id="collectorRegInput" class="form-control" placeholder="Leave blank if collected by recipient student">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-half">
+                                    <label for="verifyingStaffSelect">Verifying Desk Officer <span class="required">*</span></label>
+                                    <select id="verifyingStaffSelect" class="form-control">
+                                        <!-- Populated via API -->
+                                    </select>
+                                </div>
+                                <div class="form-group col-half">
+                                    <label for="verifyRemarksInput">Verification Remarks <span class="optional-tag">(Optional)</span></label>
+                                    <input type="text" id="verifyRemarksInput" class="form-control" placeholder="e.g. Student ID verified">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitVerifyBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-svg" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Validate & Authorize Handover</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Verification Certificate / Feedback Panel -->
+                    <div class="verification-result-panel" id="verificationFeedbackPanel">
+                        <div class="empty-state-box" id="verifyEmptyState">
+                            <div class="empty-icon-shield" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <path d="M9 12l2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <h4>Awaiting Handover Verification</h4>
+                            <p>Select an incoming delivery on the left and enter the student's 6-digit verification code. The database verifies the PIN, archives locker space, and auto-dispatches digital delivery receipts via SMS & Email.</p>
+                            <div class="empty-checklist">
+                                <div class="check-item">
+                                    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    <span>Real-time PIN Authentication</span>
+                                </div>
+                                <div class="check-item">
+                                    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    <span>Automated Locker Slot Deallocation</span>
+                                </div>
+                                <div class="check-item">
+                                    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    <span>Instant Student SMS & Email Receipts</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: OVERDUE ALERTS & BULK REMINDERS -->
+            <section class="tab-panel" id="tabOverdue" role="tabpanel" aria-labelledby="tabOverdueBtn">
+                <div class="panel-header">
+                    <div class="panel-header-title">
+                        <h2>Overdue Retention Watchdog</h2>
+                        <p>Monitor deliveries exceeding maximum holding duration and trigger automated reminder alerts</p>
+                    </div>
+                    <div class="panel-controls">
+                        <div class="threshold-control-group">
+                            <label for="thresholdInput" class="input-inline-label">Threshold:</label>
+                            <div class="input-with-suffix">
+                                <input type="number" id="thresholdInput" class="form-control input-sm" value="48" min="1" max="500">
+                                <span class="input-suffix">hrs</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" id="runCursorBtn" title="Scan for packages older than threshold">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-svg" aria-hidden="true">
+                                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                            </svg>
+                            <span>Scan Overdue</span>
+                        </button>
+                        <button class="btn btn-primary" id="sendOverdueRemindersBtn" title="Auto-send Email to all overdue recipients">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-svg" aria-hidden="true">
+                                <path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+                            </svg>
+                            <span>Dispatch Email Reminders</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Overdue Status Watchdog Banner -->
+                <div class="overdue-banner-card">
+                    <div class="overdue-banner-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                    <div class="overdue-banner-content">
+                        <h3 id="overdueSummaryTitle">Overdue Package Retention Center</h3>
+                        <p id="overdueSummaryDesc">Identify packages held beyond the campus retention window and dispatch automated SMS and Email alerts directly to student phones and inboxes.</p>
+                    </div>
+                    <div class="overdue-banner-stat">
+                        <span class="overdue-stat-num" id="overdueCountBadge">--</span>
+                        <span class="overdue-stat-lbl">Overdue</span>
+                    </div>
+                </div>
+
+                <div class="table-container" style="margin-top: 1.5rem;">
+                    <table class="data-table" id="overdueTable">
+                        <thead>
+                            <tr>
+                                <th scope="col" style="width: 70px;">ID</th>
+                                <th scope="col">Carrier Tracking</th>
+                                <th scope="col">Student Recipient</th>
+                                <th scope="col">Reg Number</th>
+                                <th scope="col">Hostel Block & Room</th>
+                                <th scope="col">Locker Shelf</th>
+                                <th scope="col">Waiting Duration</th>
+                                <th scope="col">Courier</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overdueTableBody">
+                            <tr>
+                                <td colspan="9" class="table-empty">Scanning overdue packages...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 4: AUDIT TRAIL & NOTIFICATIONS -->
+            <section class="tab-panel" id="tabAudit" role="tabpanel" aria-labelledby="tabAuditBtn">
+                <div class="split-view">
+                    <!-- Column 1: Status Activity Log -->
+                    <div class="split-column">
+                        <div class="column-header">
+                            <div>
+                                <h3>Parcel Activity Log</h3>
+                                <p>Audit record of status transitions, intake arrivals, and handovers</p>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="refreshAuditBtn">Refresh</button>
+                        </div>
+                        <div class="audit-list" id="auditListContainer">
+                            <div class="table-empty">Loading activity history...</div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Notification Dispatch Log -->
+                    <div class="split-column">
+                        <div class="column-header">
+                            <div>
+                                <h3>Automated Notifications Feed</h3>
+                                <p>Live delivery transmission log for SMS & Email arrival alerts and pickup receipts</p>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="refreshNotifsBtn">Refresh</button>
+                        </div>
+                        <div class="notif-list" id="notifListContainer">
+                            <div class="table-empty">Loading notifications...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Minimalist Architectural Footer (Hallmark Ft2) -->
+        <footer class="app-footer" role="contentinfo">
+            <div class="footer-info">
+                <span class="footer-brand">Hostel Parcel Desk</span>
+                <span class="footer-sep">/</span>
+                <span>Campus Logistics Console</span>
+                <span class="footer-sep">/</span>
+                <span class="footer-db">Database Engine: {{ db_mode|upper }}</span>
+            </div>
+            <div class="footer-pipeline">
+                <span class="status-indicator-dot small" aria-hidden="true"></span>
+                <span>Automated Email Pipeline Active</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODAL 1: REGISTER PARCEL MODAL -->
+    <div class="modal-backdrop" id="registerModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="registerModalTitle">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="registerModalTitle">Register Arriving Parcel</h3>
+                    <p class="modal-subtitle">Log incoming delivery and auto-dispatch pickup PIN via SMS & Email</p>
+                </div>
+                <button class="modal-close-btn" id="closeRegisterModalBtn" aria-label="Close modal dialog">&times;</button>
+            </div>
+            
+            <form id="registerParcelForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="regTrackingNo">Carrier Tracking Number <span class="required">*</span></label>
+                        <input type="text" id="regTrackingNo" class="form-control mono-field" placeholder="e.g. TRK-AMZ-8841" required autocomplete="off">
+                        <small class="form-help">Enter carrier tracking ID (e.g. Amazon, BlueDart, DTDC, India Post)</small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-half">
+                            <label for="regStudentSelect">Recipient Student <span class="required">*</span></label>
+                            <select id="regStudentSelect" class="form-control" required>
+                                <option value="">-- Choose Student --</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-half">
+                            <label for="regCourierSelect">Courier Service <span class="required">*</span></label>
+                            <select id="regCourierSelect" class="form-control" required>
+                                <option value="">-- Choose Courier --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-half">
+                            <label for="regShelfLoc">Storage Shelf Rack <span class="required">*</span></label>
+                            <input type="text" id="regShelfLoc" class="form-control mono-field" placeholder="e.g. Shelf A-02, Locker B-11" required>
+                        </div>
+                        <div class="form-group col-half">
+                            <label for="regStaffSelect">Registering Staff <span class="required">*</span></label>
+                            <select id="regStaffSelect" class="form-control" required>
+                                <!-- Populated via API -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regRemarks">Package Remarks <span class="optional-tag">(Optional)</span></label>
+                        <input type="text" id="regRemarks" class="form-control" placeholder="e.g. Heavy box, fragile electronics, document envelope">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelRegisterBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitRegisterBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-svg" aria-hidden="true">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        <span>Save & Dispatch Alerts</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: REGISTRATION SUCCESS DIALOG -->
+    <div class="modal-backdrop" id="codeSuccessModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="successModalTitle">
+        <div class="modal-dialog modal-dialog-sm text-center">
+            <div class="success-icon-badge" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <h3 class="modal-title" id="successModalTitle" style="margin-top: 1rem;">Parcel Successfully Registered</h3>
+            <p class="modal-subtitle">Tracking #: <strong id="successTrackingNo" class="code-val">--</strong></p>
+
+            <div class="pin-display-card">
+                <span class="pin-display-label">Generated 6-Digit Pickup Code</span>
+                <div class="pin-value-container">
+                    <span class="pin-display-value" id="successPickupCode">------</span>
+                    <button type="button" class="btn btn-secondary btn-sm copy-pin-btn" id="copySuccessPinBtn" title="Copy PIN to clipboard">
+                        Copy
+                    </button>
+                </div>
+                <div class="dispatch-channels">
+                    <span class="badge badge-email">
+                        <svg class="badge-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        Email Dispatched to Student
+                    </span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="closeSuccessModalBtn">Done</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Interactive Dashboard Script -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
