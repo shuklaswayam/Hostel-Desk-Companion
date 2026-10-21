@@ -67,7 +67,12 @@ class DatabaseManager:
 
     def _init_postgres_schema(self):
         """Initializes schema and seed data on Supabase PostgreSQL if tables don't exist yet."""
-        conn = self.get_connection()
+        try:
+            conn = self.get_connection()
+        except Exception as e:
+            print(f"[WARN] Could not connect to Supabase PostgreSQL during init: {e}")
+            return
+
         try:
             cur = conn.cursor()
             cur.execute("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'student');")

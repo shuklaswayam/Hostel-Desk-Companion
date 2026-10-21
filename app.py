@@ -12,8 +12,11 @@ app = Flask(
 )
 app.config.from_object(Config)
 
-# Initialize database on app startup
-db.init_database()
+# Initialize database on app startup (wrapped to prevent serverless import crashes)
+try:
+    db.init_database()
+except Exception as e:
+    print(f"[WARN] Initial database startup connection failed: {e}")
 
 @app.route("/")
 def index():
