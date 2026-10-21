@@ -23,10 +23,11 @@ class VercelPathFixMiddleware:
         params = urllib.parse.parse_qs(qs)
         if "__vercel_path" in params:
             raw_path = params["__vercel_path"][0]
-            if raw_path in ("", "/", "//"):
+            unquoted = urllib.parse.unquote(raw_path).strip()
+            if not unquoted or unquoted in ("/", "//"):
                 environ["PATH_INFO"] = "/"
             else:
-                environ["PATH_INFO"] = "/" + raw_path.lstrip("/")
+                environ["PATH_INFO"] = "/" + unquoted.lstrip("/")
 
             # Reconstruct clean QUERY_STRING without __vercel_path
             remaining_pairs = []
