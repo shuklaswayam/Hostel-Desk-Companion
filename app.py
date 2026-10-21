@@ -28,14 +28,6 @@ def index():
     """Main Reception Dashboard view."""
     return render_template("index.html", db_mode=db.mode)
 
-@app.errorhandler(404)
-def not_found(e):
-    return jsonify({
-        "error": "Not Found",
-        "path": request.path,
-        "environ": {k: str(v) for k, v in request.environ.items() if not k.startswith("wsgi.")}
-    }), 404
-
 @app.route("/api/stats", methods=["GET"])
 def api_stats():
     """Returns dashboard KPI counts."""
