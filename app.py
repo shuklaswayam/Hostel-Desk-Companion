@@ -28,16 +28,13 @@ def index():
     """Main Reception Dashboard view."""
     return render_template("index.html", db_mode=db.mode)
 
-@app.route("/api/debug-path")
-def api_debug_path():
+@app.errorhandler(404)
+def not_found(e):
     return jsonify({
+        "error": "Not Found",
         "path": request.path,
-        "url": request.url,
-        "headers": dict(request.headers),
-        "environ_path_info": request.environ.get("PATH_INFO"),
-        "environ_matched_path": request.environ.get("HTTP_X_MATCHED_PATH"),
-        "environ_raw_uri": request.environ.get("RAW_URI")
-    })
+        "environ": {k: str(v) for k, v in request.environ.items() if not k.startswith("wsgi.")}
+    }), 404
 
 @app.route("/api/stats", methods=["GET"])
 def api_stats():
