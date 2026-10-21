@@ -28,6 +28,16 @@ def index():
     """Main Reception Dashboard view."""
     return render_template("index.html", db_mode=db.mode)
 
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({
+        "error": "Not Found",
+        "flask_path": request.path,
+        "environ_path_info": request.environ.get("PATH_INFO"),
+        "environ_query": request.environ.get("QUERY_STRING"),
+        "routes": [str(rule) for rule in app.url_map.iter_rules()]
+    }), 404
+
 @app.route("/api/stats", methods=["GET"])
 def api_stats():
     """Returns dashboard KPI counts."""
