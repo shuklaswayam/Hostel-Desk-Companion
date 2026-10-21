@@ -30,6 +30,10 @@ def index():
     """Main Reception Dashboard view."""
     return render_template("index.html", db_mode=db.mode)
 
+@app.route("/debug/env")
+def debug_env():
+    return jsonify({k: str(v) for k, v in request.environ.items() if not k.startswith("wsgi.")})
+
 @app.route("/api/stats", methods=["GET"])
 def api_stats():
     """Returns dashboard KPI counts."""
