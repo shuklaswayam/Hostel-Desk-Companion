@@ -1,5 +1,6 @@
 import os
 import sys
+import urllib.parse
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from config import Config
 from database import db
@@ -11,6 +12,40 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, "static")
 )
 app.config.from_object(Config)
+
+class VercelPathFixMiddleware:
+    """
+    Vercel rewrites forward the original path via the __vercel_path query parameter.
+    This middleware restores the original requested path into PATH_INFO and strips
+    the helper parameter so Flask's URL routing and request.args function transparently.
+    """
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        qs = environ.get("QUERY_STRING", "")
+        params = urllib.parse.parse_qs(qs)
+        if "__vercel_path" in params:
+            raw_path = params["__vercel_path"][0]
+            unquoted = urllib.parse.unquote(raw_path).strip()
+            if not unquoted or unquoted in ("/", "//"):
+                environ["PATH_INFO"] = "/"
+            else:
+                environ["PATH_INFO"] = "/" + unquoted.lstrip("/")
+
+            # Reconstruct clean QUERY_STRING without __vercel_path
+            remaining_pairs = []
+            for k, vs in params.items():
+                if k != "__vercel_path":
+                    for v in vs:
+                        remaining_pairs.append(f"{urllib.parse.quote_plus(k)}={urllib.parse.quote_plus(v)}")
+            environ["QUERY_STRING"] = "&".join(remaining_pairs)
+        elif environ.get("PATH_INFO") in ("/api/index.py", "/api/index"):
+            environ["PATH_INFO"] = "/"
+
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = VercelPathFixMiddleware(app.wsgi_app)
 
 # Initialize database on app startup (wrapped to prevent serverless import crashes)
 try:
@@ -27,16 +62,6 @@ def serve_static(filename):
 def index():
     """Main Reception Dashboard view."""
     return render_template("index.html", db_mode=db.mode)
-
-@app.errorhandler(404)
-def not_found(e):
-    return jsonify({
-        "error": "Not Found",
-        "flask_path": request.path,
-        "environ_path_info": request.environ.get("PATH_INFO"),
-        "environ_query": request.environ.get("QUERY_STRING"),
-        "routes": [str(rule) for rule in app.url_map.iter_rules()]
-    }), 404
 
 @app.route("/api/stats", methods=["GET"])
 def api_stats():
